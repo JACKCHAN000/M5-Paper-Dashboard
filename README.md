@@ -1,14 +1,18 @@
 # M5-Paper-Dashboard
-Arduino M5 Paper Dashboard
+## Arduino M5 Paper Dashboard
 
-Feature:
+## Feature:
+
 Weather Station
+
 Calendar
+
 Environment Monitor
 ![IMG_3056](https://user-images.githubusercontent.com/61930699/211181751-0a6f5524-7451-4a99-86e6-3efdb1db319d.jpg)
 
+![Snipaste_2023-01-08_13-37-01](https://user-images.githubusercontent.com/61930699/211182150-79ad464d-0aa2-44f3-9350-39312d9232d3.png)
 
-Noted：
+## Noted：
 
 The weather display requires openweatherAPI
 
@@ -16,7 +20,7 @@ The environment sensor monitor requires Adafruit IO API
 
 The calendar using the IFTTT to send feed data into Adafruit IO
 
-Usage:
+## Usage:
 1. Please config all the setting on Config.h
 
 ```
