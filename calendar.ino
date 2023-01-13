@@ -45,10 +45,11 @@ void get_message()
       int d2 = sub2.toInt();
       String substrings[50];  // create an array to store the substrings
       splitString(sub, ':', substrings);
-      int t2 = abs(substrings[0].toInt() - 12) * 60 + substrings[1].toInt();
-      Serial.println(event_time);
-      Serial.println(t1 - t2);
-      if ((abs(t1 - t2) > 180) or (abs(d1 - d2) > 1))
+      int t2 = ((substrings[0].toInt() + TIMEZONE) % 24) * 60 + substrings[1].toInt();
+      //Serial.println(event_time);
+      //Serial.println(t1 - t2);
+      //Serial.println(d1 - d2);
+      if ((abs(t1 - t2) > 240) or (abs(d1 - d2) > 0))
       {
         Serial.println("Have a nice day!");
         canvas.drawString("Have a nice day!", 100, 475);

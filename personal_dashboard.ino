@@ -54,7 +54,7 @@ void setup()
   Serial.printf(timeStrbuff);
   //canvas.drawString(timeStrbuff, 0, 0);
   canvas.setTextDatum(TC_DATUM);
-  canvas.drawString("Last Update: "+String(RTCtime.hour)+String(":")+String(RTCtime.min), 480, 5);
+  canvas.drawString("Last Update: " + String(RTCtime.hour) + String(":") + String(RTCtime.min), 480, 5);
   char *wd[] = {"SUN", "MON", "TUE", "WED", "Thu", "FRI", "SAT"};
   char *mon[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
   Serial.println(wd[RTCDate.week]);
@@ -62,10 +62,10 @@ void setup()
   canvas.setTextSize(120);
   canvas.setTextColor(15);
   canvas.setTextDatum(TL_DATUM);
-  canvas.drawString(String(RTCDate.day)+" "+String(wd[RTCDate.week]), 30, 70);
+  canvas.drawString(String(RTCDate.day) + "" + String(wd[RTCDate.week]), 20, 70);
   canvas.createRender(50, 256);
   canvas.setTextSize(50);
-  canvas.drawString(String(mon[RTCDate.mon-1])+" "+String(RTCDate.year), 30, 185);
+  canvas.drawString(String(mon[RTCDate.mon - 1]) + " " + String(RTCDate.year), 20, 185);
   Get_Weather_Data();
   get_message();
   PostSHT30Values(temStr, humStr);
@@ -77,9 +77,66 @@ void setup()
 void loop()
 {
   delay(6000 * 30);
-  M5.shutdown(1800); // wait 1 hours
+  next_boot_Time();// turn on every 30 minutes
   canvas.fillCanvas(0);
   M5.EPD.Clear(true);
-  setup(); 
+  setup();
+
+}
+
+void next_boot_Time() {
+  M5.RTC.getTime(&RTCtime);
+  M5.RTC.getDate(&RTCDate);
+
+  time_t rawtime;
+  time(&rawtime);
+
+  // convert the time_t value to a struct tm object
+  struct tm *timeinfo = localtime(&rawtime);
+
+  // set the time
+  timeinfo->tm_sec = 0;  // set the second to 0
+  Serial.println(timeinfo->tm_min);
+  int tf = 30 - ((timeinfo->tm_min) % 30);
+  timeinfo->tm_min += tf;
+  rtc_date_t RTC_DateStruct;
+  rtc_time_t RTC_TimeStruct;
+  RTC_DateStruct.year = timeinfo->tm_year + 1900;
+  RTC_DateStruct.mon = timeinfo->tm_mon + 1;
+  RTC_DateStruct.day = timeinfo->tm_mday;
+  RTC_DateStruct.week = timeinfo->tm_wday;
+  RTC_TimeStruct.hour = timeinfo->tm_hour;
+  RTC_TimeStruct.min = timeinfo->tm_min;
+  RTC_TimeStruct.sec = timeinfo->tm_sec;
+  if (RTC_TimeStruct.min == 60)
+  {
+    RTC_TimeStruct.min = 0;
+    RTC_TimeStruct.hour = RTC_TimeStruct.hour + 1;
+  }
+  if (RTC_TimeStruct.hour == 24)
+  {
+    RTC_TimeStruct.hour = 0;
+    RTC_DateStruct.day = RTC_DateStruct.day + 1;
+    RTC_DateStruct.week = RTC_DateStruct.week + 1;
+  }
+  if ((RTC_DateStruct.day == 32) or ((RTC_DateStruct.year % 4 == 0) and (RTC_DateStruct.mon == 2) and (RTC_DateStruct.day == 30)) or ((RTC_DateStruct.year % 4 != 0) and (RTC_DateStruct.mon == 2) and (RTC_DateStruct.day == 29)) or (((RTC_DateStruct.mon == 4) or (RTC_DateStruct.mon == 6) or (RTC_DateStruct.mon == 9) or (RTC_DateStruct.mon == 11)) and (RTC_DateStruct.day == 31)))
+  {
+    RTC_DateStruct.day = 1;
+    RTC_DateStruct.mon = RTC_DateStruct.mon + 1;
+  }
+  if (RTC_DateStruct.mon == 13)
+  {
+    RTC_DateStruct.mon = 1;
+    RTC_DateStruct.year = RTC_DateStruct.year + 1;
+  }
+  if (RTC_DateStruct.week == 8)
+  {
+    RTC_DateStruct.week = 1;
+  }
+  sprintf(timeStrbuff, "%d/%02d/%02d %d %02d:%02d:%02d",
+          RTC_DateStruct.year, RTC_DateStruct.mon, RTC_DateStruct.day, RTC_DateStruct.week,
+          RTC_TimeStruct.hour, RTC_TimeStruct.min, RTC_TimeStruct.sec);
+  Serial.println(String("Next boot time: ") + String(timeStrbuff));
+  M5.shutdown(RTC_DateStruct, RTC_TimeStruct); // wait 30 minutes
 
 }
