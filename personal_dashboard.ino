@@ -10,6 +10,7 @@ void setup()
   Serial.begin(115200);
   M5.begin(false, true, false, true, true);
   M5.SHT30.Begin();
+  M5.BatteryADCBegin();
   M5.EPD.Clear(true);
   M5.TP.SetRotation(0);
   M5.EPD.SetRotation(0);
@@ -54,7 +55,9 @@ void setup()
   Serial.printf(timeStrbuff);
   //canvas.drawString(timeStrbuff, 0, 0);
   canvas.setTextDatum(TC_DATUM);
-  canvas.drawString("Last Update: " + String(RTCtime.hour) + String(":") + String(RTCtime.min), 480, 5);
+  char timeStrbuff2[14];
+  sprintf(timeStrbuff2, "%02d:%02d",RTCtime.hour, RTCtime.min);
+  canvas.drawString("Last Update: " + String(timeStrbuff2), 480, 5);
   char *wd[] = {"SUN", "MON", "TUE", "WED", "Thu", "FRI", "SAT"};
   char *mon[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
   Serial.println(wd[RTCDate.week]);
@@ -72,11 +75,15 @@ void setup()
   Get_Week_Weather_Data();
   canvas.pushCanvas(0, 0, UPDATE_MODE_GC16);
   StopWiFi();
+  uint32_t vol = M5.getBatteryVoltage();
+  if (vol > 4200){
+    Serial.println(String("Charing Mode") + String(vol));
+    delay(6000 * 3600);
+  }
 }
 
 void loop()
 {
-  delay(6000 * 30);
   next_boot_Time();// turn on every 30 minutes
   canvas.fillCanvas(0);
   M5.EPD.Clear(true);
